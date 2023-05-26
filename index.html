@@ -23,6 +23,29 @@
 
         document.body.style.textAlign = "left";
       }
+      
+      if (typeof DeviceOrientationEvent['requestPermission'] === 'function') {
+        DeviceOrientationEvent['requestPermission']()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', (event) => {
+            // console.log('=====');
+            // console.log(event);
+            this.currentCompass$.next(event['webkitCompassHeading']);
+          });
+        }})
+        .catch(console.error);
+      } else {
+        if (this.globals.iphone) {
+          window.addEventListener('deviceorientation', (event) => {
+          this.currentCompass$.next(event['webkitCompassHeading']);
+        });
+        } else {
+          window.addEventListener('deviceorientationabsolute', (event) => {
+          this.currentCompass$.next(360 - Math.round(event['alpha']));
+          }, true);
+        }
+      }
 
       createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "Build/GoldenHorseAwardDeploy.data",
